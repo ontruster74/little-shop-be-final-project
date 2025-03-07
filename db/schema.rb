@@ -15,6 +15,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_07_050216) do
   enable_extension "plpgsql"
 
   create_table "coupons", force: :cascade do |t|
+    t.string "name"
     t.string "code"
     t.string "discount_type"
     t.float "value"
