@@ -1,45 +1,41 @@
-class Api::V1::MerchantsController < ApplicationController
-
+class Api::V1::Merchants::CouponsController < ApplicationController
+  before_action :set_merchant
+  before_action :set_coupon, only: [:show, :update]
     def index
-      coupons = Coupon.all
-  
-      if params[:sorted].present?
-        coupons = coupons.sorted_by_creation
-      elsif params[:status].present?
-        coupons = Coupon.filter_by_status(params[:status])
+      if params[:activation].present?
+        coupons_list = @merchant.coupons_filtered_by_activation(params[:activation])
+      else 
+        coupons_list = @merchant.coupons
       end
-  
-      include_count = params[:count].present? && params[:count] == "true"
-      render json: MerchantSerializer.new(merchants, { params: { count: include_count }})
+
+      render json: CouponSerializer.new(coupons_list)
     end
   
     def show
-      merchant = Merchant.find(params[:id])
-      render json: MerchantSerializer.new(merchant)
+      render json: CouponSerializer.new(@coupon, { params: {action: 'show'} })
     end
   
     def create
-      merchant = Merchant.create!(merchant_params) # safe to use create! here because our exception handler will gracefully handle exception
-      render json: MerchantSerializer.new(merchant), status: :created
+      new_coupon = Coupon.create!(coupon_params) # safe to use create! here because our exception handler will gracefully handle exception
+      render json: CouponSerializer.new(new_coupon), status: :created
     end
   
     def update
-      merchant = Merchant.find(params[:id])
-      merchant.update!(merchant_params)
-  
-      render json: MerchantSerializer.new(merchant)
+      @coupon.update!(coupon_params)
+      render json: CouponSerializer.new(@coupon), status: :ok
     end
-  
-    
-    #def destroy
-    #  merchant = Merchant.find(params[:id])
-    #  merchant.destroy
-    #end
-    
   
     private
   
-    def merchant_params
-      params.permit(:name)
+    def coupon_params
+      params.permit(:name, :code, :discount_type, :value, :activated, :merchant_id)
+    end
+
+    def set_merchant
+      @merchant = Merchant.find(params[:merchant_id])
+    end
+
+    def set_coupon
+      @coupon = @merchant.coupons.find(params[:id])
     end
 end

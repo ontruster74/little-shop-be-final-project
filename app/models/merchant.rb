@@ -43,4 +43,8 @@ class Merchant < ApplicationRecord
   def self.find_one_merchant_by_name(name)
     Merchant.find_all_by_name(name).order("LOWER(name)").first
   end
+
+  def coupons_filtered_by_activation(activation)
+    coupons.where(activated: activation)
+  end
 end

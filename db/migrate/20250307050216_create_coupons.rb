@@ -11,5 +11,6 @@ class CreateCoupons < ActiveRecord::Migration[7.1]
       t.timestamps
     end
     add_index :coupons, :code, unique: :true
+    add_reference :invoices, :coupon, null: true, foreign_key: true
   end
 end
