@@ -47,4 +47,13 @@ class Merchant < ApplicationRecord
   def coupons_filtered_by_activation(activation)
     coupons.where(activated: activation)
   end
+
+  def coupon_count
+    coupons.count
+  end
+
+  def invoice_coupon_count 
+    invoices.joins(:coupon).where.not(coupons: { id: nil }).where(coupons: { activated: true}).count
+    #invoices.where.not(coupon_id: nil).count
+  end
 end
