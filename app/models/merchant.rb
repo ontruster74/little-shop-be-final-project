@@ -53,7 +53,7 @@ class Merchant < ApplicationRecord
   end
 
   def invoice_coupon_count 
-    invoices.joins(:coupon).where.not(coupons: { id: nil }).where(coupons: { activated: true}).count
-    #invoices.where.not(coupon_id: nil).count
+    #invoices.joins(:coupon).where.not(coupons: { id: nil }).where(coupons: { activated: true}).count
+    invoices.where.not(coupon_id: nil).count
   end
 end
