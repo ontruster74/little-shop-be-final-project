@@ -4,7 +4,8 @@ class Coupon < ApplicationRecord
 
   validate :merchant_5_coupon_limit, on: [:create, :update]
 
-  validates :code, presence: true, uniqueness: true
+  validates_presence_of(:name)
+  validates :code, presence: true, uniqueness: {message: 'Another coupon already has this code. Please ensure all coupon codes entered are unique.'}
   validates :discount_type, presence: true, inclusion: { in: ['percent', 'dollar']}
   validates :value, presence: true, numericality: { greater_than: 0 }
   validates :activated, inclusion: { in: [true, false] }

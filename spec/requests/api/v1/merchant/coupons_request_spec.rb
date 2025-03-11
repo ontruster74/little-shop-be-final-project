@@ -121,14 +121,24 @@ describe "Coupon endpoints", :type => :request do
       expect(json[:data][:attributes][:merchant_id]).to eq(merchant.id)
     end
 
-    it "should display an error message if not all fields are present" do
+    it "should display an error message if fields are missing" do
       merchant = create(:merchant, name: "Paper Street Soap Company")
 
       post "/api/v1/merchants/#{merchant.id}/coupons", params: {}, as: :json
       json = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json[:errors].first).to eq("Validation failed: Code can't be blank, Discount type can't be blank, Discount type is not included in the list, Value can't be blank, Value is not a number, Activated is not included in the list")
+      expect(json[:errors].first).to eq("Validation failed: Name can't be blank, Code can't be blank, Discount type can't be blank, Discount type is not included in the list, Value can't be blank, Value is not a number, Activated is not included in the list")
+    end
+
+    describe "sad paths" do
+      it "should throw an error if created coupon code is not unique" do
+        
+      end
+
+      it "should throw an error if created coupon brings merchant active coupon total above 5" do
+        
+      end
     end
 
   end
@@ -196,6 +206,16 @@ describe "Coupon endpoints", :type => :request do
 
       expect(response).to have_http_status(:not_found)
       expect(json[:errors].first).to eq("Couldn't find Coupon with 'id'=1 [WHERE \"coupons\".\"merchant_id\" = $1]")
+    end
+  end
+
+  describe "sad paths" do
+    it "should throw an error if updated coupon code is not unique" do
+      
+    end
+
+    it "should throw an error if activating a coupon brings merchant active coupon total above 5" do
+      
     end
   end
 
