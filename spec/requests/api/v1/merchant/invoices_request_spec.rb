@@ -68,4 +68,43 @@ RSpec.describe "Merchant invoices endpoints" do
     expect(json[:data].count).to eq(4)
     expect(json[:data].map { |invoice| invoice[:id] }).to match_array([@invoice1.id.to_s, @invoice2.id.to_s, @invoice3.id.to_s, @invoice4.id.to_s])
   end
+
+  it 'should include the id of the coupon applied to each invoice' do
+    merchant = create(:merchant)
+
+    coupon1 = create(:coupon, merchant_id: merchant.id)
+    coupon2 = create(:coupon, merchant_id: merchant.id)
+
+    invoice1 = create(:invoice, merchant: merchant, coupon_id: coupon1.id)
+    invoice2 = create(:invoice, merchant: merchant, coupon_id: coupon2.id)
+    invoice3 = create(:invoice, merchant: merchant, coupon_id: coupon2.id)
+
+    get "/api/v1/merchants/#{merchant.id}/invoices"
+
+    json = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+    expect(json[:data].count).to eq(3)
+    expect(json[:data][0][:attributes][:coupon_id]).to eq(coupon1.id)
+    expect(json[:data][1][:attributes][:coupon_id]).to eq(coupon2.id)
+    expect(json[:data][2][:attributes][:coupon_id]).to eq(coupon2.id)
+  end
+
+  it 'should return a nil coupon id for invoices with no applied coupon' do
+    merchant = create(:merchant)
+
+    coupon = create(:coupon, merchant_id: merchant.id)
+
+    invoice1 = create(:invoice, merchant: merchant, coupon_id: coupon.id)
+    invoice2 = create(:invoice, merchant: merchant)
+
+    get "/api/v1/merchants/#{merchant.id}/invoices"
+
+    json = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+    expect(json[:data].count).to eq(2)
+    expect(json[:data][0][:attributes][:coupon_id]).to eq(coupon.id)
+    expect(json[:data][1][:attributes][:coupon_id]).to eq(nil)
+  end
 end

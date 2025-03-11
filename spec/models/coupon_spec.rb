@@ -5,8 +5,7 @@ RSpec.describe Coupon, type: :model do
     it { should validate_presence_of :name }
 
     it { should validate_presence_of :code }
-
-    it 'should validate uniqueness of :code property' do
+    it 'should validate uniqueness of :code attribute' do
       merchant1 = create(:merchant, name: "Lorem Ipsum Inc.")
       merchant2 = create(:merchant, name: "Dolor Sit Amet Co.")
 
@@ -22,7 +21,7 @@ RSpec.describe Coupon, type: :model do
 
     it { should validate_inclusion_of(:discount_type).in_array(['percent', 'dollar']) }
 
-    context ':activated property validations' do
+    context ':activated attribute validations' do
       it 'throws error if :activated = true and merchant already has 5+ activated coupons' do
         merchant = create(:merchant, name: "ACME Corp.")
         5.times {create(:coupon, merchant_id: merchant.id, activated: true) }

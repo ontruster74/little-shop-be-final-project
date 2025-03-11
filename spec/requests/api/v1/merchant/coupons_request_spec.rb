@@ -68,8 +68,28 @@ describe "Coupon endpoints", :type => :request do
       expect(json[:data][:attributes][:code]).to be_a(String)
       expect(json[:data][:attributes][:discount_type]).to be_a(String)
       expect(json[:data][:attributes][:value]).to be_a(Float)
+      expect(json[:data][:attributes][:times_used]).to eq(0)
       expect([true, false]).to include(json[:data][:attributes][:activated])
       expect(json[:data][:attributes][:merchant_id]).to eq(merchant.id)
+    end
+
+    it "should include the number of invoices a coupon is applied to as an attribute" do
+      merchant = create(:merchant)
+      customer = create(:customer)
+      coupon = create(:coupon, merchant_id: merchant.id)
+
+      invoice1 = create(:invoice, customer: customer, merchant: merchant, coupon_id: coupon.id)
+      invoice2 = create(:invoice, customer: customer, merchant: merchant, coupon_id: coupon.id)
+      invoice3 = create(:invoice, customer: customer, merchant: merchant, coupon_id: coupon.id)
+
+      get "/api/v1/merchants/#{merchant.id}/coupons/#{coupon.id}"
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to have_http_status(:ok)
+
+      expect(json[:data]).to include(:id, :type, :attributes)
+      expect(json[:data][:attributes]).to include(:times_used)
+      expect(json[:data][:attributes][:times_used]).to eq(3)
     end
 
     it "should return 404 and error message when coupon is not found" do
@@ -131,13 +151,27 @@ describe "Coupon endpoints", :type => :request do
       expect(json[:errors].first).to eq("Validation failed: Name can't be blank, Code can't be blank, Discount type can't be blank, Discount type is not included in the list, Value can't be blank, Value is not a number, Activated is not included in the list")
     end
 
-    describe "sad paths" do
+    context "sad paths" do
       it "should throw an error if created coupon code is not unique" do
-        
+        merchant1 = create(:merchant, name: "Lorem Ipsum Inc.")
+        merchant2 = create(:merchant, name: "Dolor Sit Amet Co.")
+
+        coupon1 = create(:coupon, code: 'BOGO050', merchant_id: merchant1.id)
+        coupon2 = Coupon.new(name: "Sample Name", code: 'BOGO050', discount_type: 'percent', value: 0.50, activated: true, merchant_id: merchant2.id)
+
+        expect(coupon2).not_to be_valid
+        expect(coupon2.errors[:code]).to include('Another coupon already has this code. Please ensure all coupon codes entered are unique.')
       end
 
       it "should throw an error if created coupon brings merchant active coupon total above 5" do
+        merchant = create(:merchant, name: "ACME Corp.")
+        5.times {create(:coupon, merchant_id: merchant.id, activated: true) }
+
+        sixth_coupon = Coupon.new(merchant_id: merchant.id, activated: true)
         
+        expect(sixth_coupon).not_to be_valid
+        expect(sixth_coupon.errors.first.attribute.to_s).to eq("activated")
+        expect(sixth_coupon.errors.first.type).to eq("A merchant cannot have more than 5 coupons activated at a time.")
       end
     end
 

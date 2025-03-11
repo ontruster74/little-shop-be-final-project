@@ -92,5 +92,51 @@ describe Merchant, type: :model do
       expect(merchant.invoices_filtered_by_status("returned")).to eq([inv_5_returned])
       expect(other_merchant.invoices_filtered_by_status("packaged")).to eq([inv_4_packaged])
     end
+
+    it "#coupons_filtered_by_activation should filter coupons by :activation status" do
+      merchant1 = create(:merchant, name: "Merchant1")
+      merchant2  = create(:merchant, name: "Merchant2")
+      
+      create(:coupon, activated: "true", merchant_id: merchant1.id)
+      create(:coupon, activated: "false", merchant_id: merchant1.id)
+      create(:coupon, activated: "true", merchant_id: merchant2.id)
+      create(:coupon, activated: "false", merchant_id: merchant2.id)
+
+      expect(merchant1.coupons_filtered_by_activation(true).count).to eq(1)
+      expect(merchant1.coupons_filtered_by_activation(true)[0].attributes["merchant_id"]).to eq(merchant1.id)
+    end
+
+    it '#coupon_count should count the coupons belonging to a merchant' do
+      merchant1 = create(:merchant)
+      merchant2 = create(:merchant)
+      merchant3 = create(:merchant)
+
+      create_list(:coupon, 2, merchant_id: merchant1.id)
+      create_list(:coupon, 3, merchant_id: merchant2.id)
+      create_list(:coupon, 1, merchant_id: merchant3.id)
+
+      expect(merchant1.coupon_count).to eq(2)
+      expect(merchant2.coupon_count).to eq(3)
+      expect(merchant3.coupon_count).to eq(1)
+    end
+
+    it '#invoice_coupon_count should count the invoices with coupons applied for each merchant' do
+      merchant1 = create(:merchant)
+      merchant2 = create(:merchant)
+      merchant3 = create(:merchant)
+
+      coupon1 = create(:coupon, merchant_id: merchant1.id)
+      coupon2 = create(:coupon, merchant_id: merchant2.id)
+      coupon3 = create(:coupon, merchant_id: merchant3.id)
+
+      create_list(:invoice, 3, merchant: merchant1, coupon_id: coupon1.id)
+      create_list(:invoice, 5, merchant: merchant2, coupon_id: coupon2.id)
+      create_list(:invoice, 4, merchant: merchant3, coupon_id: coupon3.id)
+
+      expect(merchant1.invoice_coupon_count).to eq(3)
+      expect(merchant2.invoice_coupon_count).to eq(5)
+      expect(merchant3.invoice_coupon_count).to eq(4)
+    end
+
   end
 end
