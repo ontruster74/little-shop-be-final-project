@@ -1,8 +1,14 @@
-# Little Shop | Final Project | Backend Starter Repo
+# Little Shop | Final Project | Backend Repo
 
-This repository is the completed API for use with the Mod 2 Group Project. The FE repo for Little Shop lives [here](https://github.com/turingschool-examples/little-shop-fe-vite).
+## Author
 
-This repo can be used as the starter repo for the Mod 2 final project.
+Rig Freyr
+
+GitHub Link: https://github.com/ontruster74
+
+## Description
+
+This repository is the completed API for use with the Mod2 Final Project. The FE repo for this project lives [here](https://github.com/ontruster74/little-shop-fe-final-project).
 
 ## Setup
 
