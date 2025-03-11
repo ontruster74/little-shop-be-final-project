@@ -75,6 +75,50 @@ describe "Merchant endpoints", :type => :request do
       expect(json[:data][1][:attributes][:item_count]).to eq(2)
       expect(json[:data][2][:attributes][:item_count]).to eq(7)
     end
+
+    it 'should include a count of coupons belonging to each merchant' do
+      merchant1 = create(:merchant)
+      merchant2 = create(:merchant)
+      merchant3 = create(:merchant)
+
+      create_list(:coupon, 2, merchant_id: merchant1.id)
+      create_list(:coupon, 3, merchant_id: merchant2.id)
+      create_list(:coupon, 1, merchant_id: merchant3.id)
+
+      get "/api/v1/merchants"
+
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(json[:data].count).to eq(3)
+      expect(json[:data][0][:attributes][:coupons_count]).to eq(2)
+      expect(json[:data][1][:attributes][:coupons_count]).to eq(3)
+      expect(json[:data][2][:attributes][:coupons_count]).to eq(1)
+    end
+
+    it 'should include a count of invoices with coupons applied for each merchant' do
+      merchant1 = create(:merchant)
+      merchant2 = create(:merchant)
+      merchant3 = create(:merchant)
+
+      coupon1 = create(:coupon, merchant_id: merchant1.id)
+      coupon2 = create(:coupon, merchant_id: merchant2.id)
+      coupon3 = create(:coupon, merchant_id: merchant3.id)
+
+      create_list(:invoice, 3, merchant: merchant1, coupon_id: coupon1.id)
+      create_list(:invoice, 5, merchant: merchant2, coupon_id: coupon2.id)
+      create_list(:invoice, 4, merchant: merchant3, coupon_id: coupon3.id)
+
+      get "/api/v1/merchants"
+
+      json = JSON.parse(response.body, symbolize_names: true)
+
+      expect(response).to be_successful
+      expect(json[:data].count).to eq(3)
+      expect(json[:data][0][:attributes][:invoice_coupon_count]).to eq(3)
+      expect(json[:data][1][:attributes][:invoice_coupon_count]).to eq(5)
+      expect(json[:data][2][:attributes][:invoice_coupon_count]).to eq(4)
+    end
   end
 
   describe "get a merchant by id" do
